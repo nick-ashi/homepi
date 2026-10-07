@@ -4,7 +4,7 @@ import { loadRefreshToken, saveRefreshToken } from "./tokenStore.js";
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing";
 
-const SCOPES = ["user-read-currently-playing", "user-read-playback-state"].join(" ");
+const SCOPES = ["user-read-currently-playing", "user-read-playback-state", "user-modify-playback-state"].join(" ");
 
 function basicAuthHeader(): string {
   const raw = `${config.spotify.clientId}:${config.spotify.clientSecret}`;
@@ -118,4 +118,56 @@ export async function getNowPlaying(): Promise<NowPlaying> {
     progressMs: data.progress_ms,
     durationMs: data.item?.duration_ms,
   };
+}
+
+export async function playTrack(): Promise<void> {
+  const access_token = await getAccessToken();
+
+  const response = await fetch("https://api.spotify.com/v1/me/player/play", {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${access_token}`},
+  });
+
+  if (!response.ok) {
+    throw new Error(`Spotify play request failed: ${response.status} ${await response.text()}`);
+  }
+}
+
+export async function pauseTrack(): Promise<void> {
+  const access_token = await getAccessToken();
+
+  const response = await fetch("https://api.spotify.com/v1/me/player/pause", {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${access_token}`},
+  });
+
+  if (!response.ok) {
+    throw new Error(`Spotify pause request failed: ${response.status} ${await response.text()}`);
+  }
+}
+
+export async function skipToNextTrack(): Promise<void> {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch("https://api.spotify.com/v1/me/player/next", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Spotify skip-to-next request failed: ${response.status} ${await response.text()}`);
+  }
+}
+
+export async function skipToPreviousTrack(): Promise<void> {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch("https://api.spotify.com/v1/me/player/previous", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Spotify skip-to-prev request failed: ${response.status} ${await response.text()}`)
+  }
 }

@@ -1,3 +1,9 @@
+@font-face {
+  font-family: "Monocraft";
+  src: url("/fonts/Monocraft.ttf") format("truetype");
+  font-display: swap;
+}
+
 :root {
   --text: #e5e4e7;
   --text-h: #ffffff;
@@ -83,12 +89,394 @@ h2 {
   text-align: center;
 }
 
-.album-art {
-  width: min(60vw, 320px);
-  height: min(60vw, 320px);
+.now-playing-page {
+  --wood-dark: #241508;
+  --wood-mid: #4a2f16;
+  --brass: #cf9f55;
+  --brass-dark: #8a6530;
+  --brass-light: #e8ca8e;
+  --paper: #ecdfc2;
+  --felt: #20231c;
+  --rim-dark: #8f8f9a;
+  --rim-light: #e4e4ec;
+
+  position: relative;
+  color: var(--paper);
+  overflow: hidden;
+  /* Soft warm/cool bokeh lighting, like ambient cafe light rather than a literal
+     material texture - a flat wood-grain pattern reads as noise at full-screen size. */
+  background: radial-gradient(circle at 22% 16%, rgba(255, 199, 130, 0.5), transparent 38%),
+    radial-gradient(circle at 84% 72%, rgba(255, 170, 110, 0.26), transparent 34%),
+    radial-gradient(circle at 8% 88%, rgba(120, 150, 195, 0.18), transparent 42%),
+    radial-gradient(ellipse 90% 85% at 50% 55%, transparent 48%, rgba(0, 0, 0, 0.4) 100%),
+    linear-gradient(165deg, #4a3322 0%, #2d1f14 55%, #1b120b 100%);
+}
+
+.ambient-mote {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 214, 158, 0.85);
+  filter: blur(1px);
+  opacity: 0;
+  animation: mote-float 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mote-1 {
+  left: 20%;
+  top: 28%;
+}
+
+.mote-2 {
+  left: 72%;
+  top: 46%;
+  animation-delay: 2.6s;
+}
+
+.mote-3 {
+  left: 46%;
+  top: 18%;
+  animation-delay: 5.2s;
+}
+
+@keyframes mote-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-22px);
+    opacity: 0.3;
+  }
+  80% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+.now-playing-page .muted {
+  color: #c3a87d;
+  font-family: "Monocraft", monospace;
+  font-size: 20px;
+  line-height: 1.8;
+}
+
+.now-playing-page h1 {
+  font-family: "Monocraft", monospace;
+  font-size: 30px;
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  color: var(--paper);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.now-playing-page h2 {
+  font-family: "Monocraft", monospace;
+  font-size: 25px;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+.turntable {
+  position: relative;
+  width: min(86vw, 420px);
+  height: min(86vw, 420px);
+  margin-bottom: 28px;
+  border-radius: 20px;
+  border: 1px solid var(--brass-dark);
+  background-image: radial-gradient(circle at 16px 16px, var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 16px) 16px, var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at 16px calc(100% - 16px), var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), var(--brass) 0 3px, transparent 4px),
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      transparent 2px,
+      transparent 6px,
+      rgba(0, 0, 0, 0.12) 7px,
+      transparent 11px
+    ),
+    linear-gradient(145deg, #4a2f14, #201206 82%);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.08), inset 0 -8px 16px rgba(0, 0, 0, 0.55),
+    0 16px 30px rgba(0, 0, 0, 0.55);
+}
+
+.vinyl {
+  position: absolute;
+  top: 12%;
+  left: 12%;
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.08), transparent 42%),
+    repeating-radial-gradient(circle at center, #15110d 0px, #15110d 3px, #201a16 3px, #201a16 6px);
+  /* Felt mat, then a beveled chrome platter rim, peeking out around the record. */
+  box-shadow: 0 0 0 5px var(--felt), 0 0 0 7px var(--rim-dark), 0 0 0 8px var(--rim-light),
+    0 10px 22px rgba(0, 0, 0, 0.55);
+}
+
+.vinyl.spinning {
+  animation: vinyl-spin 5.8s linear infinite;
+}
+
+@keyframes vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The label is deliberately large - album art is the focal point, the vinyl
+   grooves are just a thin ring to keep the record-player identity visible. */
+.vinyl-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72%;
+  height: 72%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 0 0 3px #110d09, 0 0 0 5px var(--brass), 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.vinyl-label::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7%;
+  height: 7%;
+  transform: translate(-50%, -50%);
+  background: var(--wood-dark);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.vinyl-label img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 24px;
+}
+
+.tonearm {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 154px;
+  height: 15px;
+  background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+  border-radius: 7px;
+  transform-origin: 100% 50%;
+  transform: rotate(-82deg);
+  transition: transform 0.4s ease;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tonearm.dragging {
+  transition: none;
+  cursor: grabbing;
+}
+
+.tonearm::before {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--brass-light), var(--brass-dark) 75%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tonearm::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  width: 19px;
+  height: 19px;
+  transform: translateY(-50%);
+  border-radius: 4px;
+  background: var(--wood-dark);
+  box-shadow: 0 0 0 2px var(--brass-dark);
+}
+
+.tonearm.playing {
+  transform: rotate(-24deg);
+}
+
+.turntable-switch {
+  position: absolute;
+  bottom: 16px;
+  width: 22px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.switch-1 {
+  left: 14%;
+}
+
+.switch-2 {
+  left: 27%;
+}
+
+.turntable-led {
+  position: absolute;
+  bottom: 19px;
+  left: 42%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3a2a18;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.6);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.turntable-led.on {
+  background: #ffb347;
+  box-shadow: 0 0 6px 2px rgba(255, 179, 71, 0.75), inset 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.turntable-plaque {
+  position: absolute;
+  bottom: 14px;
+  right: 10%;
+  width: 46px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.now-playing-page .eq-bars {
+  margin-top: 24px;
+}
+
+.now-playing-page .eq-bar {
+  background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+  opacity: 0.45;
+}
+
+.now-playing-page .eq-bar.active {
+  opacity: 1;
+}
+
+.now-playing-page .playback-controls {
+  margin-top: 28px;
+}
+
+.now-playing-page .playback-button {
+  border-radius: 0;
+  clip-path: polygon(
+    8px 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px),
+    0 8px
+  );
+  border: 3px solid var(--wood-dark);
+  background: var(--brass);
+  color: var(--wood-dark);
+  box-shadow: inset 2px 2px 0 var(--brass-light), inset -2px -2px 0 var(--brass-dark);
+}
+
+.now-playing-page .playback-button svg {
+  shape-rendering: crispEdges;
+}
+
+.now-playing-page .playback-button-primary {
+  background: #f0dba8;
+  box-shadow: inset 2px 2px 0 #fff0d2, inset -2px -2px 0 var(--brass-dark);
+}
+
+.eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 36px;
+  margin-top: 20px;
+}
+
+.eq-bar {
+  width: 6px;
+  height: 100%;
+  background: var(--text-h);
+  border-radius: 3px;
+  transform: scaleY(0.12);
+  transform-origin: bottom;
+  opacity: 0.6;
+}
+
+.eq-bar.active {
+  animation-name: eq-bounce;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  opacity: 1;
+}
+
+@keyframes eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.12);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.playback-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: #2a2a2e;
+  color: var(--text-h);
+  padding: 0;
+  cursor: pointer;
+}
+
+.playback-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.playback-button-primary {
+  width: 72px;
+  height: 72px;
+  background: var(--text-h);
+  color: var(--bg);
+}
+
+.playback-button-primary svg {
+  width: 30px;
+  height: 30px;
 }
 
 .widgets-page {

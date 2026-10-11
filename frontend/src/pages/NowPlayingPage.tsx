@@ -146,7 +146,9 @@ export function NowPlayingPage() {
           <h2 className="muted">{nowPlaying.artistName}</h2>
         </>
       ) : (
-        <p className="muted">Nothing playing right now</p>
+        <p className="muted">
+          \.....OFFLINE...../<br></br>
+        </p>
       )}
 
       <EqVisualizer active={isPlaying} />

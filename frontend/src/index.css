@@ -634,7 +634,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 15px;
+  font-size: 25px;
 }
 
 .weather-status {

@@ -89,20 +89,24 @@ h2 {
   text-align: center;
 }
 
-.now-playing-page {
+.now-playing-page,
+.ambient-bg {
   --wood-dark: #241508;
   --wood-mid: #4a2f16;
   --brass: #cf9f55;
   --brass-dark: #8a6530;
   --brass-light: #e8ca8e;
   --paper: #ecdfc2;
+  --muted-brass: #c3a87d;
   --felt: #20231c;
   --rim-dark: #8f8f9a;
   --rim-light: #e4e4ec;
+  --led-glow: #ffb347;
 
   position: relative;
   color: var(--paper);
   overflow: hidden;
+  font-family: "Monocraft", monospace;
   /* Soft warm/cool bokeh lighting, like ambient cafe light rather than a literal
      material texture - a flat wood-grain pattern reads as noise at full-screen size. */
   background: radial-gradient(circle at 22% 16%, rgba(255, 199, 130, 0.5), transparent 38%),
@@ -122,23 +126,6 @@ h2 {
   opacity: 0;
   animation: mote-float 8s ease-in-out infinite;
   pointer-events: none;
-}
-
-.mote-1 {
-  left: 20%;
-  top: 28%;
-}
-
-.mote-2 {
-  left: 72%;
-  top: 46%;
-  animation-delay: 2.6s;
-}
-
-.mote-3 {
-  left: 46%;
-  top: 18%;
-  animation-delay: 5.2s;
 }
 
 @keyframes mote-float {
@@ -480,24 +467,267 @@ h2 {
 }
 
 .widgets-page {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 24px;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 28px;
+  text-align: left;
 }
 
-.widget {
-  flex: 1 1 240px;
-  max-width: 100%;
+.widgets-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 20px;
+}
+
+/* Copied from .turntable: same wood-grain panel, corner screws, and bevel,
+   just rectangular instead of square and sized to whatever grid cell it's in. */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--brass-dark);
+  background-image: radial-gradient(circle at 16px 16px, var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 16px) 16px, var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at 16px calc(100% - 16px), var(--brass) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), var(--brass) 0 3px, transparent 4px),
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      transparent 2px,
+      transparent 6px,
+      rgba(0, 0, 0, 0.12) 7px,
+      transparent 11px
+    ),
+    linear-gradient(145deg, #4a2f14, #201206 82%);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.08), inset 0 -8px 16px rgba(0, 0, 0, 0.55),
+    0 16px 30px rgba(0, 0, 0, 0.55);
+}
+
+.felt-inset {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 10px;
+  background: radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.05), transparent 40%), var(--felt);
+  box-shadow: 0 0 0 2px #110d09, 0 0 0 4px var(--brass-dark), inset 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.divider-dashed {
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--brass-dark) 0 6px, transparent 6px 10px);
+}
+
+/* Photos widget */
+
+.photos-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.photos-widget-empty {
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.photo-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-layer-in {
+  animation: photo-fade-in 600ms ease forwards;
+}
+
+.photo-layer-out {
+  animation: photo-fade-out 600ms ease forwards;
+}
+
+@keyframes photo-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes photo-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 40px 20px 16px;
+  background: linear-gradient(transparent, rgba(10, 7, 4, 0.78));
+}
+
+.photo-caption-name {
+  font-size: 16px;
+  color: var(--paper);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.photo-caption-count {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.photo-progress-track {
+  height: 6px;
+  margin-top: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #1b120b;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.photo-progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+  animation: photo-progress linear forwards;
+}
+
+@keyframes photo-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Weather widget */
+
+.weather-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 30px;
+}
+
+.weather-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+}
+
+.weather-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.weather-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.weather-led.live {
+  background: var(--led-glow);
+  box-shadow: 0 0 6px 2px rgba(255, 179, 71, 0.6);
+}
+
+.weather-led.stale {
+  background: #5a5248;
+}
+
+.weather-now {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .weather-temp {
-  font-size: 48px;
-  color: var(--text-h);
+  font-size: clamp(40px, 10vmin, 76px);
+  color: var(--paper);
+  font-weight: bold;
+  line-height: 1;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
 }
 
-.photo-widget img {
-  max-width: 100%;
-  max-height: 60vh;
-  border-radius: 12px;
-  object-fit: cover;
+.weather-condition {
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+.weather-hilo {
+  display: flex;
+  gap: 24px;
+  font-size: 16px;
+}
+
+.weather-hourly {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.weather-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+}
+
+.weather-hour .muted {
+  font-size: 13px;
+}
+
+/* Clock widget */
+
+.clock-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.clock-time {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: clamp(28px, 9vmin, 52px);
+  color: var(--paper);
+  font-weight: bold;
+  line-height: 1;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+.clock-suffix {
+  font-size: 20px;
+  color: var(--brass);
+}
+
+.clock-date {
+  font-size: 16px;
+  margin-top: 4px;
 }

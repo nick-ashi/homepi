@@ -13,6 +13,19 @@ const REST_ANGLE = -82;
 const PLAY_ANGLE = -24;
 const DRAG_THRESHOLD_PX = 4;
 
+const MOTES = [
+  { left: 10, top: 20, delay: 0 },
+  { left: 22, top: 55, delay: 1.1 },
+  { left: 35, top: 12, delay: 2.3 },
+  { left: 48, top: 70, delay: 3.4 },
+  { left: 60, top: 25, delay: 4.5 },
+  { left: 72, top: 60, delay: 5.6 },
+  { left: 85, top: 15, delay: 6.7 },
+  { left: 15, top: 80, delay: 7.2 },
+  { left: 90, top: 45, delay: 1.8 },
+  { left: 55, top: 42, delay: 4.9 },
+];
+
 function angleFromPointer(clientX: number, clientY: number, pivotX: number, pivotY: number): number {
   const dx = clientX - pivotX;
   const dy = clientY - pivotY;
@@ -110,9 +123,13 @@ export function NowPlayingPage() {
 
   return (
     <div className="page now-playing-page">
-      <div className="ambient-mote mote-1" />
-      <div className="ambient-mote mote-2" />
-      <div className="ambient-mote mote-3" />
+      {MOTES.map((mote, i) => (
+        <div
+          key={i}
+          className="ambient-mote"
+          style={{ left: `${mote.left}%`, top: `${mote.top}%`, animationDelay: `${mote.delay}s` }}
+        />
+      ))}
 
       <div className="turntable">
         <div className="turntable-plaque" />

@@ -22,4 +22,5 @@ export const config = {
     redirectUri: process.env.SPOTIFY_REDIRECT_URI ?? "http://127.0.0.1:3001/api/spotify/callback",
   },
   tokenStorePath: process.env.TOKEN_STORE_PATH ?? "./data/spotify-tokens.json",
+  widgetsConfigPath: process.env.WIDGETS_CONFIG_PATH ?? "./data/widgets.json",
 };

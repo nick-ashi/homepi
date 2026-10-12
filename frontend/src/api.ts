@@ -1,3 +1,5 @@
+import type { WidgetsConfig } from "./widgets/types";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001";
 
 export interface NowPlaying {
@@ -10,9 +12,26 @@ export interface NowPlaying {
   durationMs?: number;
 }
 
-export interface WeatherCurrent {
-  temperature_2m: number;
-  weather_code: number;
+export interface WeatherHourEntry {
+  time: string;
+  temperature: number;
+  weatherCode: number;
+  isDay: boolean;
+}
+
+export interface WeatherResponse {
+  location: string;
+  units: "F" | "C";
+  current: { temperature: number; weatherCode: number; isDay: boolean };
+  today: { high: number; low: number };
+  hourly: WeatherHourEntry[];
+  fetchedAt: string;
+}
+
+export interface PhotoEntry {
+  url: string;
+  name: string;
+  takenAt?: string;
 }
 
 async function getJson<T>(path: string): Promise<T> {
@@ -45,6 +64,22 @@ export const api = {
       throw new Error(`Request to pause track failed: ${res.status}`);
     }
   }),
-  weather: () => getJson<WeatherCurrent>("/api/weather"),
-  photos: () => getJson<string[]>("/api/photos").then((paths) => paths.map((p) => `${BASE_URL}${p}`)),
+  weather: () => getJson<WeatherResponse>("/api/weather"),
+  photos: () =>
+    getJson<PhotoEntry[]>("/api/photos").then((entries) =>
+      entries.map((entry) => ({ ...entry, url: `${BASE_URL}${entry.url}` })),
+    ),
+  widgetsConfig: () => getJson<WidgetsConfig>("/api/widgets"),
+  saveWidgetsConfig: (next: WidgetsConfig) =>
+    fetch(`${BASE_URL}/api/widgets`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.errors?.join(", ") ?? `Request to save widgets config failed: ${res.status}`);
+      }
+      return res.json() as Promise<WidgetsConfig>;
+    }),
 };

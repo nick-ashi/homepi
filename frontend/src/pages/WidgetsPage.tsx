@@ -1,71 +1,63 @@
 import { useEffect, useState } from "react";
-import { api, type WeatherCurrent } from "../api";
-import { describeWeatherCode } from "../weatherCodes";
+import { api } from "../api";
+import { Panel } from "../widgets/Panel";
+import { widgetRegistry } from "../widgets/registry";
+import type { WidgetsConfig } from "../widgets/types";
 
-const WEATHER_POLL_MS = 10 * 60 * 1000;
-const PHOTO_ROTATE_MS = 15000;
+const MOTES = [
+  { left: 12, top: 18, delay: 0 },
+  { left: 30, top: 60, delay: 1.6 },
+  { left: 55, top: 25, delay: 3.1 },
+  { left: 75, top: 65, delay: 4.4 },
+  { left: 90, top: 20, delay: 2.2 },
+];
 
-function WeatherWidget() {
-  const [weather, setWeather] = useState<WeatherCurrent | null>(null);
+export function WidgetsPage() {
+  const [config, setConfig] = useState<WidgetsConfig | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    async function poll() {
-      try {
-        const data = await api.weather();
-        if (!cancelled) setWeather(data);
-      } catch {
-        // leave last known value on screen rather than erroring out
-      }
-    }
-    poll();
-    const id = setInterval(poll, WEATHER_POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
+    api.widgetsConfig().then(setConfig).catch(() => setConfig(null));
   }, []);
 
-  if (!weather) return <div className="widget weather-widget muted">Loading weather…</div>;
-
-  return (
-    <div className="widget weather-widget">
-      <div className="weather-temp">{Math.round(weather.temperature_2m)}°F</div>
-      <div className="muted">{describeWeatherCode(weather.weather_code)}</div>
-    </div>
-  );
-}
-
-function PhotoWidget() {
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    api.photos().then(setPhotos).catch(() => setPhotos([]));
-  }, []);
-
-  useEffect(() => {
-    if (photos.length < 2) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % photos.length), PHOTO_ROTATE_MS);
-    return () => clearInterval(id);
-  }, [photos.length]);
-
-  if (photos.length === 0) {
-    return <div className="widget photo-widget muted">No photos found</div>;
+  if (!config) {
+    return <div className="page widgets-page ambient-bg muted">Loading widgets…</div>;
   }
 
   return (
-    <div className="widget photo-widget">
-      <img src={photos[index]} alt="" draggable={false} />
-    </div>
-  );
-}
+    <div className="page widgets-page ambient-bg">
+      {config.ambient &&
+        MOTES.map((mote, i) => (
+          <div
+            key={i}
+            className="ambient-mote"
+            style={{ left: `${mote.left}%`, top: `${mote.top}%`, animationDelay: `${mote.delay}s` }}
+          />
+        ))}
 
-export function WidgetsPage() {
-  return (
-    <div className="page widgets-page">
-      <WeatherWidget />
-      <PhotoWidget />
+      <div
+        className="widgets-grid"
+        style={{
+          gridTemplateColumns: `repeat(${config.grid.cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${config.grid.rows}, minmax(0, 1fr))`,
+        }}
+      >
+        {config.widgets.map((widget) => {
+          const definition = widgetRegistry[widget.type];
+          const Component = definition.Component;
+          return (
+            <Panel
+              key={widget.id}
+              className="widgets-grid-item"
+              style={{
+                gridColumn: `${widget.x + 1} / span ${widget.w}`,
+                gridRow: `${widget.y + 1} / span ${widget.h}`,
+              }}
+            >
+              <Component settings={widget.settings} size={{ w: widget.w, h: widget.h }} />
+            </Panel>
+          );
+        })}
+      </div>
     </div>
   );
 }

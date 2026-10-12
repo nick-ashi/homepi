@@ -40,6 +40,40 @@ async function geocodeLocation(location: string): Promise<GeocodeResult> {
   return result;
 }
 
+// Cached by rounded lat/lon - only re-fetched if the coordinates actually move.
+let reverseGeocodeCache: { key: string; displayName: string } | null = null;
+
+async function reverseGeocode(latitude: number, longitude: number): Promise<string> {
+  const key = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+  if (reverseGeocodeCache && reverseGeocodeCache.key === key) {
+    return reverseGeocodeCache.displayName;
+  }
+
+  const params = new URLSearchParams({
+    format: "json",
+    lat: String(latitude),
+    lon: String(longitude),
+    zoom: "10",
+  });
+
+  // Nominatim's usage policy just asks for an identifying User-Agent and no
+  // more than ~1 req/sec, which the cache above already guarantees.
+  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+    headers: { "User-Agent": "homepi (personal picture-frame weather widget)" },
+  });
+  if (!response.ok) {
+    throw new Error(`Reverse geocoding request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const address = data.address ?? {};
+  const place = address.city ?? address.town ?? address.village ?? address.county;
+  const displayName = [place, address.state ?? address.country].filter(Boolean).join(", ") || "Local";
+
+  reverseGeocodeCache = { key, displayName };
+  return displayName;
+}
+
 interface ForecastCache {
   key: string;
   fetchedAt: number;
@@ -89,13 +123,17 @@ weatherRouter.get("/", async (_req, res) => {
 
     let latitude = config.weather.latitude;
     let longitude = config.weather.longitude;
-    let displayLocation = "Local";
+    let displayLocation: string;
 
     if (settings.location.trim().length > 0) {
       const geocoded = await geocodeLocation(settings.location.trim());
       latitude = geocoded.latitude;
       longitude = geocoded.longitude;
       displayLocation = geocoded.displayName;
+    } else {
+      // No location text configured - derive a display name from
+      // WEATHER_LAT/WEATHER_LON instead of just labeling it "Local".
+      displayLocation = await reverseGeocode(latitude, longitude).catch(() => "Local");
     }
 
     const data = (await getForecast(latitude, longitude, settings.units, settings.hourlyCount, settings.refreshMin)) as {
